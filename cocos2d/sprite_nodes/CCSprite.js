@@ -944,6 +944,19 @@ cc.SpriteCanvas = cc.Node.extend(/** @lends cc.SpriteCanvas# */{
         cc.Assert(filename != null, "Sprite#initWithFile():Invalid filename for sprite");
         var selfPointer = this;
 
+        /*
+         * TODO: Hard coded the resource name to test if the optimization for images is meaningful
+         * The resources are the same except for their sizes.
+         */
+        if (filename.search("640_960") != -1)
+            this._debuggingHigh = true;
+        else if (filename.search("320_480") != -1)
+            this._debuggingLow = true;
+        else
+            this._debuggingHigh = this._debuggingLow = false;
+
+
+
         var texture = cc.TextureCache.getInstance().textureForKey(cc.FileUtils.getInstance().fullPathForFilename(filename));
         if (!texture) {
             this._visible = false;
@@ -1258,11 +1271,52 @@ cc.SpriteCanvas = cc.Node.extend(/** @lends cc.SpriteCanvas# */{
                     this._offsetPosition.x - flipXOffset, -this._offsetPosition.y - this._rect.size.height + flipYOffset,
                     this._rect.size.width, this._rect.size.height);
             } else {
+                /*  // backup the previous code.
                 context.drawImage(this._texture,
                     this._rect.origin.x, this._rect.origin.y,
                     this._rect.size.width, this._rect.size.height,
                     this._offsetPosition.x - flipXOffset, -this._offsetPosition.y - this._rect.size.height + flipYOffset,
                     this._rect.size.width, this._rect.size.height);
+                */
+                /*
+                 * TODO: The following code is to prove that optimization for images is meaningful.
+                 * This is just for the background image. If applied to every image, the output may be out of order
+                 * since high-resolution images are mixed together with normal-resolution images.
+                 */
+
+                // The x coordinate where to start clipping
+                var sx = this._rect.origin.x;
+                // The y coordinate where to start clipping
+                var sy = this._rect.origin.y;
+                // The width of the clipped image
+                var swidth  = this._rect.size.width;
+                // The height of the clipped image
+                var sheight = this._rect.size.height;
+                // The x coordinate where to place the image on the canvas
+                var x = this._offsetPosition.x - flipXOffset;
+                // The y coordinate where to place the image on the canvas
+                var y = -this._offsetPosition.y - this._rect.size.height + flipYOffset;
+                // The width of the image to use (stretch or reduce the image)
+                var width  = this._rect.size.width;
+                // The height of the image to use (stretch or reduce the image)
+                var height = this._rect.size.height;
+
+                if (this._debuggingHigh) {
+                    // This is just hacking, I am not familiar with the drawing part,
+                    // writing like following worked well when cc.UTILIZE_HIGH_RESOLUTION is turned either on or off.
+                    x = swidth / 2;
+                    y = y;
+
+                    width /= 2;
+                    height /= 2;
+                } else if (this._debuggingLow) {
+                    // This is just hacking, I am not familiar with the drawing part,
+                    // writing like following worked well when cc.UTILIZE_HIGH_RESOLUTION is turned either on or off.
+                    x = swidth / 2;
+                    y -= (sheight / 2);
+                }
+
+                context.drawImage(this._texture, sx, sy, swidth, sheight, x, y, width, height);
             }
         } else if (this._contentSize.width !== 0) {
             context.fillStyle = "rgba(" + this._color.r + "," + this._color.g + "," + this._color.b + ",1)";
