@@ -282,6 +282,29 @@ cc.dumpConfig = function() {
         cc.log( i + " = " + sys[i] );
 };
 
+/**
+ * <p>
+ *     Tell cocos2d-html5 to optimize for high resolution display or not. <br/>
+ *     By "high resolution", it refers to those displays with window.devicePixelRatio > 1. <br/>
+ *     One shall not use cc.canvas.width/height directly! Use cc.canvasWidthInPoints or cc.canvasWidthInPixels instead. <br/>
+ *          cc.canvasWidthInPoints + "px"  => cc.canvas.style.width <br/>
+ *          cc.canvasHeightInPoints + "px" => cc.canvas.style.height <br/>
+ *          cc.canvasWidthInPixels  => cc.canvas.width <br/>
+ *          cc.canvasHeightInPixels => cc.canvas.height <br/>
+ *
+ *     @WARNING: When set to 1, the following methods or properties would have different behaviors: <br/>
+ *         1. context.shadowOffsetX, its unit is in physical pixels, thus being smaller on high resolution displays. <br/>
+ *         2. context.shadowOffsetY, the same as above. <br/>
+ *         3. context.setTransform(), it will reset the previous scale(), thus the adaptation is wiped. <br/>
+ *         4. context.createImageData(), the size is in CSS pixels, may not be the same as the real amount of pixels. <br/>
+ *         5. context.putImageData(), the same as above. <br/>
+ *         6. context.getImageData(), the same as above. <br/>
+ *         7. canvas.toDataURL(), the same as above. <br/>
+ * </p>
+ * @type {number}
+ */
+cc.UTILIZE_HIGH_RESOLUTION = 1;
+
 /** @def CC_ENABLE_GL_STATE_CACHE
  If enabled, cocos2d will maintain an OpenGL state cache internally to avoid unnecessary switches.
  In order to use them, you have to use the following functions, insead of the the GL ones:

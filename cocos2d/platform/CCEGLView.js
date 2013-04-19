@@ -98,16 +98,89 @@ cc.EGLView = cc.Class.extend(/** @lends cc.EGLView# */{
         window.addEventListener('resize', adjustSize, false);
     },
 
+    /**
+     * modify the given context for drawing on canvas, to adapt the utilization of high resolution displays
+     * @param ctx
+     * @param factor
+     * @private
+     */
+    _adaptCanvasContext: function(ctx, factor) {
+        // adapted once is enough
+        if (ctx.adapted_for_high_resolution) {
+            return;
+        }
+
+        var savedFunctions = {};
+
+        /*
+         * save the original method into savedFunctions
+         * the new method does some operations on the arguments then pass to original method
+         */
+        function modify(func_name, args_func) {
+            savedFunctions[func_name] = ctx[func_name];
+            ctx[func_name] = function() {
+                return savedFunctions[func_name].apply(ctx, args_func(arguments));
+            }
+        }
+
+        /*
+         * return a new array with each element being the previous one in args * factor
+         */
+        function multiplyEach(args) {
+            // convert to an array
+            args = Array.prototype.slice.call(args);
+            return args.map(function(e) { return e * factor; });
+        }
+
+        // the following adaptation works
+        modify('isPointInPath', multiplyEach);
+
+        function remainTheSame(args) {
+            return args;
+        }
+        /*
+         * TODO: The following 3 methods needs adaptation! They may be rarely used,
+         * but once used when cc.UTILIZE_HIGH_RESOLUTION is on, the behavior may be beyond expectation.
+         * Besides, canvas.toDataURL() is unable to modify here.
+         */
+        modify('setTransform', remainTheSame);
+        modify('getImageData', remainTheSame);
+        modify('putImageData', remainTheSame);
+
+        // adapted once is enough
+        ctx.adapted_for_high_resolution = true;
+    },
+
     _adjustSize:function () {
         var ele = document.documentElement;
-        cc.canvas.width = ele.clientWidth;
-        cc.canvas.height = ele.clientHeight;
-        if(!("opengl" in sys.capabilities))
-            cc.renderContext.translate(0, cc.canvas.height);
+        cc.canvasWidthInPoints = ele.clientWidth;
+        cc.canvasHeightInPoints = ele.clientHeight;
+
+        if(!("opengl" in sys.capabilities)) {
+            cc.canvasWidthInPixels = cc.canvasWidthInPoints * cc.backingScale;
+            cc.canvasHeightInPixels = cc.canvasHeightInPoints * cc.backingScale;
+        } else {
+            cc.canvasWidthInPixels = cc.canvasWidthInPoints;
+            cc.canvasHeightInPixels = cc.canvasHeightInPoints;
+        }
+
+        cc.canvas.width = cc.canvasWidthInPixels;
+        cc.canvas.height = cc.canvasHeightInPixels;
+        cc.canvas.style.width = cc.canvasWidthInPoints + "px";
+        cc.canvas.style.height = cc.canvasHeightInPoints + "px";
+
+        if(!("opengl" in sys.capabilities)) {
+            if (cc.backingScale != 1) {
+                cc.renderContext.scale(cc.backingScale, cc.backingScale);
+                this._adaptCanvasContext(cc.renderContext, cc.backingScale);
+            }
+            cc.renderContext.translate(0, cc.canvasHeightInPoints);
+        }
+
         var parent = document.querySelector("#" + document['ccConfig']['tag']).parentNode;
         if (parent) {
-            parent.style.width = cc.canvas.width + "px";
-            parent.style.height = cc.canvas.height + "px";
+            parent.style.width = cc.canvasWidthInPoints + "px";
+            parent.style.height = cc.canvasHeightInPoints + "px";
         }
         var body = document.body;
         if (body) {
@@ -116,7 +189,7 @@ cc.EGLView = cc.Class.extend(/** @lends cc.EGLView# */{
             body.style.margin = 0 + "px";
         }
 
-        this._screenSize = cc.size(cc.canvas.width, cc.canvas.height);
+        this._screenSize = cc.size(cc.canvasWidthInPoints, cc.canvasHeightInPoints);
         this.setDesignResolutionSize();
     },
 

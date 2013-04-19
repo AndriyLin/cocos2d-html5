@@ -69,7 +69,7 @@ cc._logToWebPage = function (message) {
         logDiv.setAttribute("id", "logInfoDiv");
         cc.canvas.parentNode.appendChild(logDiv);
         logDiv.setAttribute("width", "300");
-        logDiv.setAttribute("height", cc.canvas.height);
+        logDiv.setAttribute("height", cc.canvasHeightInPixels);
         logDiv.style.zIndex = "99999";
         logDiv.style.position = "absolute";
         logDiv.style.top = "0";
@@ -96,7 +96,7 @@ cc._logToWebPage = function (message) {
         var tempDiv = document.createElement("Div");
         logDiv.appendChild(tempDiv);
         tempDiv.style.width = "300px";
-        tempDiv.style.height = cc.canvas.height + "px";
+        tempDiv.style.height = cc.canvasHeightInPoints + "px";
         tempDiv.style.opacity = "0.1";
         tempDiv.style.background = "#fff";
         tempDiv.style.border = "1px solid #dfdfdf";

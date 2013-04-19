@@ -158,11 +158,7 @@ cc.setup = function (el, width, height) {
         cc.canvas = element;
         cc.canvas.parentNode.insertBefore(cc.container, cc.canvas);
         cc.canvas.appendTo(cc.container);
-        cc.container.style.width = (width || 480) + "px";
-        cc.container.style.height = (height || 320) + "px";
         cc.container.setAttribute('id', 'Cocos2dGameContainer');
-        cc.canvas.setAttribute("width", width || 480);
-        cc.canvas.setAttribute("height", height || 320);
     } else {//we must make a new canvas and place into this element
         if (element.tagName != "DIV") {
             cc.log("Warning: target element is not a DIV or CANVAS");
@@ -172,13 +168,16 @@ cc.setup = function (el, width, height) {
 
         cc.canvas = cc.$new("CANVAS");
         cc.canvas.addClass("gameCanvas");
-        cc.canvas.setAttribute("width", width || 480);
-        cc.canvas.setAttribute("height", height || 320);
         cc.container = element;
         element.appendChild(cc.canvas);
-        cc.container.style.width = (width || 480) + "px";
-        cc.container.style.height = (height || 320) + "px";
     }
+    cc.canvasWidthInPixels = cc.canvasWidthInPoints = width || 480;
+    cc.canvasHeightInPixels = cc.canvasHeightInPoints = height || 320;
+    cc.container.style.width = cc.canvasWidthInPoints + "px";
+    cc.container.style.height = cc.canvasHeightInPoints + "px";
+    cc.canvas.setAttribute("width", cc.canvasWidthInPixels);
+    cc.canvas.setAttribute("height", cc.canvasHeightInPixels);
+
     cc.container.style.position = 'relative';
     cc.container.style.overflow = 'hidden';
     cc.container.top = '100%';
@@ -195,12 +194,31 @@ cc.setup = function (el, width, height) {
     } else {
         cc.renderContext = cc.canvas.getContext("2d");
         cc.renderContextType = cc.CANVAS;
-        cc.renderContext.translate(0, cc.canvas.height);
+        cc.renderContext.translate(0, cc.canvasHeightInPoints);
         cc.drawingUtil = new cc.DrawingPrimitiveCanvas(cc.renderContext);
     }
 
+    /*
+     * TODO High_Text: cc.originalCanvasSize is used in cc.LazyLayer
+     * shall also change the way of calling cc.canvas.xxx directly
+     */
     cc.originalCanvasSize = cc.size(cc.canvas.width, cc.canvas.height);
     cc.gameDiv = cc.container;
+
+    // calculate the backingScale for optimization for high resolution displays
+    if (cc.UTILIZE_HIGH_RESOLUTION) {
+        /*
+         * bsRatio: ask for 1 pixel, how many pixels are actually given
+         * Mac OS X shall have automatically allocated 2n*2n size for canvas when developer wants n*n size
+         */
+        var bsRatio = cc.renderContext.webkitBackingStorePixelRatio || 1;
+        /*
+         * cc.backingScale is used in optimization for high resolution displays
+         */
+        cc.backingScale = cc.DEVICE_PIXEL_RATIO / bsRatio;
+    } else {
+        cc.backingScale = 1;
+    }
 
     cc.log(cc.ENGINE_VERSION);
     cc.Configuration.getInstance();

@@ -241,6 +241,16 @@ cc.CONTENT_SCALE_FACTOR = cc.IS_RETINA_DISPLAY_SUPPORTED ? function () {
 };
 
 /**
+ * <p>
+ *     1*1 CSS pixel is rendered on ?*? physical real pixels. <br/>
+ *     Used in canvas drawing on high resolution displays <br/>
+ * </p>
+ */
+cc.DEVICE_PIXEL_RATIO = (function(){
+    return window.devicePixelRatio || 1;
+})();
+
+/**
  * Converts a rect in points to pixels
  * @param {cc.Point} points
  * @return {cc.Point}
