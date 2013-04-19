@@ -799,7 +799,8 @@ cc.Director = cc.Class.extend(/** @lends cc.Director# */{
              this.updateContentScaleFactor();
              }*/
 
-        this._touchDispatcher.setDispatchEvents(true);
+        // TODO: To re-enable touch events (pause testing), uncomment the following line
+        // this._touchDispatcher.setDispatchEvents(true);
         //}
     },
 

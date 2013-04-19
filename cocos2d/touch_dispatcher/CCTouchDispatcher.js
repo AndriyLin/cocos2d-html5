@@ -147,7 +147,8 @@ cc.TouchDispatcher = cc.Class.extend(/** @lends cc.TouchDispatcher# */ {
         this._toQuit = false;
         this._locked = false;
         this._mousePressed = false;
-        cc.TouchDispatcher.registerHtmlElementEvent(cc.canvas);
+        // TODO: To re-enable touch events (pause testing), uncomment the following line
+        // cc.TouchDispatcher.registerHtmlElementEvent(cc.canvas);
         return true;
     },
 
